@@ -80,6 +80,9 @@ declare_args() {
   # Sets -dENABLE_VTUNE_TRACEMARK.
   v8_enable_vtunetracemark = false
 
+  # Sets -dV8_ENABLE_APX.
+  v8_enable_apx = false
+
   # Sets -dENABLE_HUGEPAGE
   v8_enable_hugepage = false
 
@@ -1040,6 +1043,9 @@ config("features") {
   }
   if (v8_enable_vtunetracemark) {
     defines += [ "ENABLE_VTUNE_TRACEMARK" ]
+  }
+  if (v8_enable_apx) {
+    defines += [ "V8_ENABLE_APX" ]
   }
   if (v8_enable_hugepage) {
     defines += [ "ENABLE_HUGEPAGE" ]

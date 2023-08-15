@@ -28,6 +28,7 @@ enum CpuFeature {
   POPCNT,
   INTEL_ATOM,
   CETSS,
+  APX,
 
 #elif V8_TARGET_ARCH_ARM
   // - Standard configurations. The baseline is ARMv6+VFPv2.

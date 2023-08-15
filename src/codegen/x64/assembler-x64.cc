@@ -72,6 +72,14 @@ bool OSHasAVXSupport() {
   return (feature_mask & 0x6) == 0x6;
 }
 
+#ifdef V8_ENABLE_APX
+bool OSHasAPXSupport() {
+  // Check whether OS claims to support APX.
+  uint64_t feature_mask = xgetbv(0);  // XCR_XFEATURE_ENABLED_MASK
+  return (feature_mask >> 19) & 0x1;
+}
+#endif  // V8_ENABLE_APX
+
 #endif  // V8_HOST_ARCH_IA32 || V8_HOST_ARCH_X64
 
 }  // namespace
@@ -114,6 +122,10 @@ void CpuFeatures::ProbeImpl(bool cross_compile) {
   } else if (strcmp(v8_flags.mcpu, "atom") == 0) {
     SetSupported(INTEL_ATOM);
   }
+#ifdef V8_ENABLE_APX
+  if (cpu.has_apx() && cpu.has_osxsave() && OSHasAPXSupport())
+    SetSupported(APX);
+#endif  // V8_ENABLE_APX
 
   // Ensure that supported cpu features make sense. E.g. it is wrong to support
   // AVX but not SSE4_2, if we have --enable-avx and --no-enable-sse4-2, the
@@ -126,6 +138,9 @@ void CpuFeatures::ProbeImpl(bool cross_compile) {
   if (!v8_flags.enable_avx || !IsSupported(SSE4_2)) SetUnsupported(AVX);
   if (!v8_flags.enable_avx2 || !IsSupported(AVX)) SetUnsupported(AVX2);
   if (!v8_flags.enable_fma3 || !IsSupported(AVX)) SetUnsupported(FMA3);
+#ifdef V8_ENABLE_APX
+  if (!v8_flags.enable_apx) SetUnsupported(APX);
+#endif  // V8_ENABLE_APX
 
   // Set a static value on whether Simd is supported.
   // This variable is only used for certain archs to query SupportWasmSimd128()
@@ -146,14 +161,14 @@ void CpuFeatures::PrintFeatures() {
       "BMI1=%d "
       "BMI2=%d "
       "LZCNT=%d "
-      "POPCNT=%d ATOM=%d\n",
+      "POPCNT=%d ATOM=%d APX=%d\n",
       CpuFeatures::IsSupported(SSE3), CpuFeatures::IsSupported(SSSE3),
       CpuFeatures::IsSupported(SSE4_1), CpuFeatures::IsSupported(SSE4_2),
       CpuFeatures::IsSupported(SAHF), CpuFeatures::IsSupported(AVX),
       CpuFeatures::IsSupported(AVX2), CpuFeatures::IsSupported(FMA3),
       CpuFeatures::IsSupported(BMI1), CpuFeatures::IsSupported(BMI2),
       CpuFeatures::IsSupported(LZCNT), CpuFeatures::IsSupported(POPCNT),
-      CpuFeatures::IsSupported(INTEL_ATOM));
+      CpuFeatures::IsSupported(INTEL_ATOM), CpuFeatures::IsSupported(APX));
 }
 
 // -----------------------------------------------------------------------------
